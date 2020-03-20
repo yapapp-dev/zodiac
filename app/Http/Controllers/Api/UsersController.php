@@ -31,6 +31,7 @@ use App\dpoPayments;
 use App\Notifications\ContactUsNoti;
 use Illuminate\Support\Str;
 use App\Notifications\CustomNoti;
+use App\Notifications\SendResetPasswordOTP;
 
 
 class UsersController extends Controller   
@@ -482,11 +483,31 @@ public $successStatus = 200;
 	}
 	
     public function changePassword(Request $request) { 
-		if (Auth::user()) {			
+		
+		if(!$request->has('user_id') || $request->input('user_id') == ''){
+			$result = array(
+				"statusCode" => 401,  // $this-> successStatus
+				"message" => "user_id is required."	
+			);
+			return response()->json($result); 
+		}
+
+		$userId = $request->input('user_id');
+		$user = User::where('id', $userId)->first();
+		
+		if(!$user){
+			$result = array(
+				"statusCode" => 401,  // $this-> successStatus
+				"message" => "User does not exist with this user id."	
+			);
+			return response()->json($result); 
+		}
+		
+		if ($user) {			
 			$input = $request->all();			
-			if(!empty($input['password'])) {
-				$user = Auth::user();				
-				$user->password = bcrypt($input['password']);
+			if(!empty($input['new_password'])) {
+				// $user = Auth::user();				
+				$user->password = bcrypt($input['new_password']);
 				$user->save();	
 				$result = array(
 					"statusCode" => 200,  // $this-> successStatus
@@ -504,7 +525,122 @@ public $successStatus = 200;
 			]);
 		}			
     }
-    
+	
+	public function forgotPassword(Request $request) {
+		// if (Auth::user()) { 
+			//$user = Auth::user(); 
+
+			if(!$request->has('user_id') || $request->input('user_id') == ''){
+				$result = array(
+					"statusCode" => 401,  // $this-> successStatus
+					"message" => "user_id is required."	
+				);
+				return response()->json($result); 
+			}
+
+			$userId = $request->input('user_id');
+
+			if(filter_var($userId, FILTER_VALIDATE_EMAIL)){
+				$user = User::where('email', $userId)->first();	
+			} else {
+				$user = User::where('phone', $userId)->first();	
+			}
+			
+			if(!$user){
+				$result = array(
+					"statusCode" => 401,  // $this-> successStatus
+					"message" => "User does not exist with this user id."	
+				);
+				return response()->json($result); 
+			}
+
+			$resetPasswordOtp = mt_rand(1000000, 9999999);
+			$userObj = $user;
+			$user->reset_password_otp = $resetPasswordOtp;
+			$hasSaved = $user->save();
+
+			if($hasSaved){
+				if(filter_var($userId, FILTER_VALIDATE_EMAIL)){
+					$userObj->subject = 'Reset Password OTP';
+					$userObj->line1 = "Hi ".$userObj->name;
+					$userObj->line2 = "Your reset password OTP is $resetPasswordOtp";
+					//$user->line6 = "Click below button to approve.";
+					$userObj->action_label = "Mr. Nice";
+					$userObj->action = "/";
+
+					$userObj->notify(new SendResetPasswordOTP($userObj));
+				} else {
+					// TO DO
+					// Send otp on phone number
+				}
+				
+				$result = array(
+					"statusCode" => 200,  // $this-> successStatus
+					"message" => "Reset password OTP has been sent.",
+					"data" => [
+						'user_id' => $userId
+					]
+				);
+				return response()->json($result);
+
+				// return response()->json(['test' => $userObj]); 
+			}
+		
+	}
+
+	public function resetPassword(Request $request) {
+		// if (Auth::user()) { 
+			//$user = Auth::user(); 
+			$validator = Validator::make($request->all(), [ 
+				'user_id' => 'required',
+				'reset_password_otp' => 'required',
+				'new_password' => 'required',
+			]);
+	
+
+			if ($validator->fails()) { 
+				$errors = $validator->errors()->all();
+					$result = array(
+						"statusCode" => 401,  // $this-> successStatus
+						"message" => $errors[0]
+					);
+				return response()->json($result );            
+			}
+			$input = $request->all();
+
+			if(filter_var($input['user_id'], FILTER_VALIDATE_EMAIL)){
+				$query = User::where('email', $input['user_id']);	
+			} else {
+				$query = User::where('phone', $input['user_id']);	
+			}
+			$userObj = $query->where('reset_password_otp', $input['reset_password_otp'])->first();
+
+			if(!$userObj){
+				$result = array(
+					"statusCode" => 401,  // $this-> successStatus
+					"message" => "User does not exist with these details."	
+				);
+				return response()->json($result); 
+			}
+
+			$userObj->password = bcrypt($input['new_password']);
+			$userObj->reset_password_otp = null;
+
+			if($userObj->save()){
+				$result = array(
+					"statusCode" => 200,  // $this-> successStatus
+					"message" => "Password updated successfully."
+				);
+				
+			} else {
+				$result = array(
+					"statusCode" => 401,  // $this-> successStatus
+					"message" => "Unable to change password. Please try again later.",
+				);
+			}
+			return response()->json($result);			
+	}
+
 	public function updateprofile(Request $request) { 
 		if (Auth::user()) {
 			$user = Auth::user();	

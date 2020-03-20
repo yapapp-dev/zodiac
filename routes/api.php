@@ -33,6 +33,10 @@ Route::group(['namespace' => 'Api', 'as' => 'api'], function () {
     Route::post('sociallogin','UsersController@sociallogin');
     Route::post('logout', 'UsersController@logout'); 
 
+    Route::post('forgotPassword', 'UsersController@forgotPassword');
+    Route::post('resetPassword', 'UsersController@resetPassword');
+
+    Route::post('changePassword', 'UsersController@changePassword');
     // Route::post('servicelist', 'UsersController@servicelist'); 
     // Route::post('subservice', 'UsersController@getSubServices'); 
     // Route::post('search-service', 'UsersController@searchSubservices');
@@ -44,11 +48,12 @@ Route::group(['namespace' => 'Api', 'as' => 'api'], function () {
     Route::group(['middleware' => ['auth:api', 'logs']], function(){
         Route::get('logout', 'UsersController@logout');
         Route::post('updateprofile', 'UsersController@updateprofile');
-        Route::post('changepassword', 'UsersController@changePassword');
-            
+        
     });
 
     Route::get('userdetails', 'UsersController@details');
     Route::get('categoryList', 'UsersController@categoryList');
+
+    Route::post('addProduct', 'ProductsController@addProduct');
 
 });
