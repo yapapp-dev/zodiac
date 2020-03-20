@@ -56,9 +56,14 @@ Route::group(['namespace' => 'Api', 'as' => 'api'], function () {
 
     Route::get('userdetails', 'UsersController@details');
     Route::get('categoryList', 'UsersController@categoryList');
+
     Route::get('productList', 'UsersController@categoryList');
 
     // This route is for admin
     Route::post('addProduct', 'ProductsController@addProduct');
+
+    Route::get('nearByShops', 'UsersController@nearByShops');
+    Route::get('shopDetails', 'UsersController@shopDetails');
+
 
 });

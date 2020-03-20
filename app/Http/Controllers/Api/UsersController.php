@@ -32,6 +32,8 @@ use App\Notifications\ContactUsNoti;
 use Illuminate\Support\Str;
 use App\Notifications\CustomNoti;
 use App\Notifications\SendResetPasswordOTP;
+use App\Shop;
+
 
 
 class UsersController extends Controller   
@@ -99,7 +101,7 @@ public $successStatus = 200;
 			]);
 			$user->save();
 
-            $success['token'] =  $user->createToken('MrNice')->accessToken; 
+            $success['token'] =  $user->createToken('MyApp')->accessToken; 
             
             $user->token = $success['token'];
 
@@ -204,7 +206,7 @@ public $successStatus = 200;
 
 	
 		
-		$success['token'] =  $user->createToken('MrNice')->accessToken; 
+		$success['token'] =  $user->createToken('MyApp')->accessToken; 
 		$success['data']  =  $user; 
 		
 		if(is_numeric($input['email_mobile'])){
@@ -341,7 +343,8 @@ public $successStatus = 200;
      */ 
     public function details(Request $request) {  
 		// if (Auth::user()) { 
-			//$user = Auth::user(); 
+			$user = Auth::user(); 
+			print_r($user);
 
 			if(!$request->has('user_id') || $request->input('user_id') == ''){
 				$result = array(
@@ -456,7 +459,7 @@ public $successStatus = 200;
 				// $loggedInUser["reward_points"] = $loggedInUser->currentPoints();
 				// $loggedInUser["reward_value"] = \Config::get('constants.redeem_rate')*$loggedInUser["reward_points"];
 
-			$success['token'] =  $loggedInUser->createToken('MrNice')->accessToken; 
+			$success['token'] =  $loggedInUser->createToken('MyApp')->accessToken; 
 				
 			$loggedInUser->token = $success['token'];
 
@@ -2247,6 +2250,72 @@ public $successStatus = 200;
    public function categoryList() {
         
 	$res = category::all();
+	$result = array(
+		"statusCode" => 200,  // $this-> successStatus
+		"message" => "success",
+		"data" => $res
+	);
+
+	return response()->json($result); 
+}
+
+
+public function nearByShops(Request $request) {
+
+	$error = "";
+	if(!$request->has('lat') || $request->input('lat') == ''){
+		$error = "lat is mandatory";
+	}
+	if(!$request->has('long') || $request->input('long') == ''){
+		$error = "long is mandatory";
+	}
+	if($error != "") {
+		$result = array(
+			"statusCode" => 401,  // $this-> successStatus
+			"message" => $error	
+		);
+		return response()->json($result ); 
+	}
+
+	$input = $request->all();	
+
+	$latitude = $input['lat'];
+	$longitude = $input['long'];
+
+	$res = Shop::selectRaw('*, ( 6367 * acos( cos( radians( ? ) ) * cos( radians( `lat` ) ) * cos( radians( `long` ) - radians( ? ) ) + sin( radians( ? ) ) * sin( radians( lat ) ) ) ) AS distance', [$latitude, $longitude, $latitude])
+	->having('distance', '<', \Config::get('constants.service_radius'))
+		->get();
+
+	$result = array(
+		"statusCode" => 200,  // $this-> successStatus
+		"message" => "success",
+		"data" => $res
+	);
+
+	return response()->json($result); 
+}
+
+
+public function shopDetails(Request $request) {
+
+	$error = "";
+	if(!$request->has('shop_id') || $request->input('shop_id') == ''){
+		$error = "shop_id is mandatory";
+	}
+	if($error != "") {
+		$result = array(
+			"statusCode" => 401,  // $this-> successStatus
+			"message" => $error	
+		);
+		return response()->json($result ); 
+	}
+
+	$input = $request->all();	
+
+	$shop_id = $input['shop_id'];
+
+	$res = Shop::find($shop_id);
+
 	$result = array(
 		"statusCode" => 200,  // $this-> successStatus
 		"message" => "success",
