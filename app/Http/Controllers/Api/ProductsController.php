@@ -51,10 +51,57 @@ class ProductsController extends Controller
             return response()->json($result);
         } else {
             $result = array(
-				"statusCode" => 500,  // $this-> successStatus
+				"statusCode" => 500,
 				"message" => "Unable to add product. Please try again later."	
 			);
             return response()->json($result); 
         }
+    }
+
+    public function getProducts(){
+        $productsColl = Product::all();
+
+        if($productsColl){
+            $result = array(
+                "statusCode" => 200,  // $this-> successStatus
+                "message" => "success",
+                "data" => $productsColl
+            );
+
+            return response()->json($result);
+        }
+
+        $result = array(
+            "statusCode" => 500,
+            "message" => "Unable to get products. Please try again later."	
+        );
+        return response()->json($result); 
+    }
+
+    public function getProductDetail($productId){
+        if($productId){
+            $productObj = Product::find($productId);
+            if($productObj){
+                $result = array(
+                    "statusCode" => 200,  // $this-> successStatus
+                    "message" => "success",
+                    "data" => $productObj
+                );
+            } else {
+                $result = array(
+                    "statusCode" => 200,  // $this-> successStatus
+                    "message" => "success",
+                    "data" => []
+                );
+            }
+            return response()->json($result);
+        } else {
+            $result = array(
+                "statusCode" => 500,
+                "message" => "Unable to get products. Please try again later."	
+            );
+        }
+
+        
     }
 }
