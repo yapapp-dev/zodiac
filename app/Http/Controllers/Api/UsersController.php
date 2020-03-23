@@ -242,7 +242,7 @@ public $successStatus = 200;
 
 	public function verifyUser(Request $request) {
 		
-		// if (Auth::user()) { 
+		if (Auth::user()) { 
 			//$user = Auth::user(); 
 
 			if(!$request->has('user_id') || $request->input('user_id') == ''){
@@ -265,12 +265,12 @@ public $successStatus = 200;
 				"data" => $user
 			);
 			return response()->json($result);
-		// }
-		// else {
-		// 	return response()->json([
-		// 		'message' => 'Sorry! But you are not an authorized user.'
-		// 	]);
-		// }
+		}
+		else {
+			return response()->json([
+				'message' => 'Sorry! But you are not an authorized user.'
+			]);
+		}
 		
 	}
 
@@ -342,9 +342,9 @@ public $successStatus = 200;
      * @return \Illuminate\Http\Response 
      */ 
     public function details(Request $request) {  
-		// if (Auth::user()) { 
+		if (Auth::user()) { 
 			$user = Auth::user(); 
-			print_r($user);
+			//print_r($user);
 
 			if(!$request->has('user_id') || $request->input('user_id') == ''){
 				$result = array(
@@ -379,12 +379,12 @@ public $successStatus = 200;
 				"data" => $user
 			);
 			return response()->json($result);
-		// }
-		// else{
-		// 	return response()->json([
-		// 		'message' => 'Sorry! But you are not an authorized user.'
-		// 	]);
-		// }
+		}
+		else{
+			return response()->json([
+				'message' => 'Sorry! But you are not an authorized user.'
+			]);
+		}
 		
     }
 	public function sociallogin(Request $request)

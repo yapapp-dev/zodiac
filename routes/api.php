@@ -28,7 +28,6 @@ Route::group(['namespace' => 'Api', 'as' => 'api'], function () {
     Route::post('login', 'UsersController@login');
     Route::post('register', 'UsersController@register');
     Route::post('verifyOtp', 'UsersController@verifyOtp');
-    Route::post('verifyUser', 'UsersController@verifyUser');
     Route::get('send-otp/{id}', 'UsersController@sendOtp');
     Route::post('sociallogin','UsersController@sociallogin');
     Route::post('logout', 'UsersController@logout'); 
@@ -48,13 +47,14 @@ Route::group(['namespace' => 'Api', 'as' => 'api'], function () {
     // Route::get('currencies', 'UsersController@currencies');  
     // Route::get('sendPushNotification','notificationController@sendPushNotificationApi');
 
-    Route::group(['middleware' => ['auth:api', 'logs']], function(){
+    Route::group(['middleware' => ['auth:api']], function(){
         Route::get('logout', 'UsersController@logout');
         Route::post('updateprofile', 'UsersController@updateprofile');
+        Route::get('userdetails', 'UsersController@details');
+        Route::post('verifyUser', 'UsersController@verifyUser');
         
     });
 
-    Route::get('userdetails', 'UsersController@details');
     Route::get('categoryList', 'UsersController@categoryList');
 
     Route::get('productList', 'UsersController@categoryList');
