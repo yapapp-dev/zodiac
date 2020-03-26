@@ -71,11 +71,9 @@ public $successStatus = 200;
 			);
 			return response()->json($result ); 
 		}
-		if(is_numeric($request->get('email_mobile'))) {
-			$val = Auth::attempt(['phone' => request('email_mobile'), 'password' => request('password'), 'admin' => request('admin')]);
-        } else {
-			$val = Auth::attempt(['email' => request('email_mobile'), 'password' => request('password'), 'admin' => request('admin')]);
-		}
+		
+			$val = Auth::attempt(['email' => request('email'), 'password' => request('password'), 'admin' => request('admin')]);
+		
         if($val) { 		
             $user = Auth::user(); 
 
@@ -87,10 +85,10 @@ public $successStatus = 200;
 			// 	return response()->json($result );            
 			// }
 			
-			if ($user['phone_verified'] == 0 && $user['email_verified'] == 0) {
+			if ($user['email_verified'] == 0) {
 				$result = array(
 					"statusCode" => 708,  // $this-> successStatus
-					"message" => "Verify Your Email/Phone First."
+					"message" => "Verify Your Email First."
 				);
 				return response()->json($result );            
 			}
@@ -169,7 +167,7 @@ public $successStatus = 200;
 
 			$validator = Validator::make($request->all(), [ 
 				'name' => 'required',
-				'email_mobile' => 'required|unique:users,email|unique:users,phone', 
+				'email' => 'required|unique:users,email', 
 				'password' => 'required'
 			]);
 	
@@ -186,13 +184,9 @@ public $successStatus = 200;
 		$data['name'] = $input['name']; 
 		$data['password'] = bcrypt($input['password']);
 
-		if(is_numeric($input['email_mobile'])){
-			$data['phone'] = $input['email_mobile'];
-			$data['email'] = $input['email_mobile']."@mrnice.com";
-		}
-		else{
-			$data['email'] = $input['email_mobile'];
-		}
+		
+			$data['email'] = $input['email'];
+		
 		
 
 		$activation_token = Str::random(60);
@@ -209,12 +203,7 @@ public $successStatus = 200;
 		$success['token'] =  $user->createToken('MyApp')->accessToken; 
 		$success['data']  =  $user; 
 		
-		if(is_numeric($input['email_mobile'])){
-			
-		    // tiwilio
-		  	
-		}
-		else{
+		
 
 			DB::table('user_activations')->insert(['id_user'=>$user['id'],'token'=>$activation_token]);
 			
@@ -223,10 +212,10 @@ public $successStatus = 200;
 			$user->line1 = "Hi ".$user->name;
 			$user->line2 = "Your OTP verification code is $otp";
 			//$user->line6 = "Click below button to approve.";
-			$user->action_label = "Mr. Nice";
+			$user->action_label = "zodiac";
 			$user->action = "/";
 			$user->notify(new CustomNoti($user));
-		}
+		
 
 		
 
@@ -301,7 +290,7 @@ public $successStatus = 200;
 	public function sendOtp(Request $request) {
 		$user = User::find($request->id);
 		$otp = substr(mt_rand(1000,10000000000), 0, 4);
-		$mobileMessage = $this->mobileMessage($user->phone,"Your MrNice verification OTP is $otp.");
+		$mobileMessage = $this->mobileMessage($user->phone,"Your zodiac verification OTP is $otp.");
 		$t=time();
 		DB::table('otp')
 			->where('user_id', $request->id)
@@ -324,7 +313,7 @@ public $successStatus = 200;
 	}
 	public function mobileMessage($mobile,$message) {
 		$numbers = urlencode($mobile);
-		$sender = urlencode('MrNice');
+		$sender = urlencode('zodiac');
 		$apiKey = urlencode('qCyIIcBC5W0-EVjmXfLvruLq2XUrVXV0UvnJcR4sUv');
 		$data = array('apikey' => $apiKey, 'numbers' => $numbers, "sender" => $sender, "message" => $message);
 			// Send the POST request with cURL
@@ -568,7 +557,7 @@ public $successStatus = 200;
 					$userObj->line1 = "Hi ".$userObj->name;
 					$userObj->line2 = "Your reset password OTP is $resetPasswordOtp";
 					//$user->line6 = "Click below button to approve.";
-					$userObj->action_label = "Mr. Nice";
+					$userObj->action_label = "zodiac";
 					$userObj->action = "/";
 
 					$userObj->notify(new SendResetPasswordOTP($userObj));
@@ -957,8 +946,8 @@ public $successStatus = 200;
 			"statusCode" => 200,  // $this-> successStatus
 			"message" => "success",
 			/*"data" => array(
-				'title'=>"MrNice",
-				'description'=>"MrNice description",
+				'title'=>"zodiac",
+				'description'=>"zodiac description",
 				'link'=>"http://yapapp.net",
 				'src'=>"http://hobyclean.mastishakmitr.com/img/slider/banner1.jpg"
 				)*/
@@ -1458,7 +1447,7 @@ public $successStatus = 200;
 				$fcm_token = $user_data['fcm_token'];
 				$title = "New Order Received";
 				$message = "New order #$order_id has been assigned to you";  
-        $mail_subject = "MrNice - New Order #$order_id Assigned";
+        $mail_subject = "Zodiac - New Order #$order_id Assigned";
 				$result['noti_res'] = notificationController::sendPushNotification($fcm_token, $title, $message, $user_id, $receiver_user_type, $order_id);
 
 				    $user_data->mail_subject = $mail_subject;
@@ -1622,27 +1611,27 @@ public $successStatus = 200;
 			if($status=='3'){
 					$title = "Order Paid";
 					$message = "Payment of your order #$order_id has been received"; 
-					$mail_subject = "MrNice - Order #$order_id Paid";
+					$mail_subject = "Zodiac - Order #$order_id Paid";
 			}
 			else if($status=='4'){
 					$title = "Order Picked Up";
 					$message = "Your order #$order_id has been picked to be processed";  
-					$mail_subject = "MrNice - Order #$order_id Picked Up";
+					$mail_subject = "Zodiac - Order #$order_id Picked Up";
 			}
 			else if($status=='5'){
 					$title = "Order In Process";
 					$message = "Your order #$order_id is in process";  
-					$mail_subject = "MrNice - Order #$order_id In Process";
+					$mail_subject = "Zodiac - Order #$order_id In Process";
 			}
 			else if($status=='6'){
 					$title = "Order Out For Delivery";
 					$message = "Your order #$order_id is out for delivery to your door";  
-					$mail_subject = "MrNice - Order #$order_id Out For Delivery";
+					$mail_subject = "Zodiac - Order #$order_id Out For Delivery";
 			}
 			else if($status=='7'){
 					$title = "Order Delivered";
 					$message = "Your order #$order_id has been delivered to your door";  
-					$mail_subject = "MrNice - Order #$order_id Delivered";
+					$mail_subject = "Zodiac - Order #$order_id Delivered";
 					
 					$points_rate = \Config::get('constants.points_rate');
             $amount = $order_data[0]->sub_total*$points_rate;
